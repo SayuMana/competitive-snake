@@ -15,7 +15,7 @@ namespace CompetitiveSnake.EditorTools
         const string DataDir = "Assets/Data";
         const string ConfigPath = "Assets/Data/SnakeConfig.asset";
         const string PrefKey = "CompetitiveSnake.BuilderVersion";
-        const int BuildVersion = 7;
+        const int BuildVersion = 8;
 
         static readonly Color TextColor = new Color(0.95f, 0.96f, 1f);
         static readonly Color HintColor = new Color(0.62f, 0.66f, 0.75f);
@@ -136,7 +136,7 @@ namespace CompetitiveSnake.EditorTools
             var scaler = canvasGo.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(690f, 900f);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 1f;
 
             canvasGo.AddComponent<GraphicRaycaster>();
 
@@ -149,10 +149,16 @@ namespace CompetitiveSnake.EditorTools
 
             var padArea = CreatePadArea(canvasGo.transform, config.bottomUiFraction);
 
-            CreateDpadButton(padArea, "PadUp", new Vector2(0f, 96f), Vector2Int.up, "\u25B2");
-            CreateDpadButton(padArea, "PadLeft", new Vector2(-96f, 0f), Vector2Int.left, "\u25C0");
-            CreateDpadButton(padArea, "PadRight", new Vector2(96f, 0f), Vector2Int.right, "\u25B6");
-            CreateDpadButton(padArea, "PadDown", new Vector2(0f, -96f), Vector2Int.down, "\u25BC");
+            RectTransform padUp = CreateDpadButton(padArea, "PadUp", new Vector2(0f, 96f), "\u25B2");
+            RectTransform padLeft = CreateDpadButton(padArea, "PadLeft", new Vector2(-96f, 0f), "\u25C0");
+            RectTransform padRight = CreateDpadButton(padArea, "PadRight", new Vector2(96f, 0f), "\u25B6");
+            RectTransform padDown = CreateDpadButton(padArea, "PadDown", new Vector2(0f, -96f), "\u25BC");
+
+            var touchPad = canvasGo.AddComponent<TouchPad>();
+            Wire(touchPad, "up", padUp);
+            Wire(touchPad, "down", padDown);
+            Wire(touchPad, "left", padLeft);
+            Wire(touchPad, "right", padRight);
 
             GameObject readyPanel = CreatePanel(canvasGo.transform, "ReadyPanel", new Color(0f, 0f, 0f, 0.82f));
             CreateWideText(readyPanel.transform, "Title", "COMPETITIVE SNAKE", 62, 0.5f, 130f, 100f, TextColor, TextAnchor.MiddleCenter);
@@ -178,7 +184,7 @@ namespace CompetitiveSnake.EditorTools
 
         static Vector2 Center => new Vector2(0.5f, 0.5f);
 
-        static void CreateDpadButton(Transform parent, string name, Vector2 position, Vector2Int direction, string glyph)
+        static RectTransform CreateDpadButton(Transform parent, string name, Vector2 position, string glyph)
         {
             var go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(parent, false);
@@ -192,15 +198,12 @@ namespace CompetitiveSnake.EditorTools
 
             var image = go.AddComponent<Image>();
             image.color = new Color(1f, 1f, 1f, 0.10f);
-
-            var button = go.AddComponent<Button>();
-            button.targetGraphic = image;
+            image.raycastTarget = false;
 
             CreateText(go.transform, "Glyph", glyph, 40, TextAnchor.MiddleCenter,
                 Vector2.zero, new Vector2(92f, 92f), TextColor, Center, Center);
 
-            var dpad = go.AddComponent<DpadButton>();
-            SetVector2Int(dpad, "direction", direction);
+            return rect;
         }
 
         static Text CreateWideText(Transform parent, string name, string content, int size, float anchorY,
@@ -352,21 +355,6 @@ namespace CompetitiveSnake.EditorTools
             }
 
             property.objectReferenceValue = value;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-        }
-
-        static void SetVector2Int(UnityEngine.Object target, string fieldName, Vector2Int value)
-        {
-            var serialized = new SerializedObject(target);
-            var property = serialized.FindProperty(fieldName);
-
-            if (property == null)
-            {
-                Debug.LogError("[SnakeBuilder] missing field " + target.GetType().Name + "." + fieldName);
-                return;
-            }
-
-            property.vector2IntValue = value;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
     }
