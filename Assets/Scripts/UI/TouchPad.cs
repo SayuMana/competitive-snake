@@ -14,6 +14,12 @@ namespace CompetitiveSnake
             Vector2 position;
             if (!TryGetPress(out position)) return;
 
+            Debug.Log("[Pad] press=" + position + " screen=" + Screen.width + "x" + Screen.height +
+                      " up=" + RectTransformUtility.RectangleContainsScreenPoint(up, position, null) +
+                      " down=" + RectTransformUtility.RectangleContainsScreenPoint(down, position, null) +
+                      " left=" + RectTransformUtility.RectangleContainsScreenPoint(left, position, null) +
+                      " right=" + RectTransformUtility.RectangleContainsScreenPoint(right, position, null));
+
             if (RectTransformUtility.RectangleContainsScreenPoint(up, position, null)) Push(Vector2Int.up);
             else if (RectTransformUtility.RectangleContainsScreenPoint(down, position, null)) Push(Vector2Int.down);
             else if (RectTransformUtility.RectangleContainsScreenPoint(left, position, null)) Push(Vector2Int.left);
@@ -45,6 +51,7 @@ namespace CompetitiveSnake
         {
             if (MatchController.Instance == null) return;
             MatchController.Instance.PlayerInput.Push(direction);
+            Debug.Log("[Pad] push=" + direction);
         }
     }
 }
